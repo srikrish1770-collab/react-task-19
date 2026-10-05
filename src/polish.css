@@ -1,0 +1,222 @@
+/* =====================================================================
+   BankDash — final polish layer
+   Loaded AFTER index.css. It never changes sizes, grids or breakpoints of the
+   Figma layout; it only adds depth, motion, feedback and the new overlay UI
+   (toasts, dialogs, popovers). Everything respects prefers-reduced-motion.
+   ===================================================================== */
+:root{
+  --shadow:0 1px 2px rgba(15,23,42,.04),0 8px 22px rgba(15,23,42,.045);
+  --shadow-md:0 2px 4px rgba(15,23,42,.04),0 14px 30px rgba(79,70,229,.10);
+  --shadow-lg:0 22px 48px rgba(15,23,42,.16);
+  --out:cubic-bezier(.22,1,.36,1);
+  --spring:cubic-bezier(.34,1.56,.64,1);
+}
+html{scroll-behavior:smooth}
+::selection{background:rgba(79,70,229,.18)}
+.stat b,.bal{font-variant-numeric:tabular-nums}
+
+/* ---------- keyframes ---------- */
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes pop-in{from{opacity:0;transform:translateY(-6px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes modal-in{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes toast-in{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes toast-out{to{opacity:0;transform:translateX(24px)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(239,68,68,.5)}80%,100%{box-shadow:0 0 0 7px rgba(239,68,68,0)}}
+@keyframes sheen{from{background-position:-120% 0}to{background-position:220% 0}}
+
+/* ---------- page load: soft fade + staggered rise of each block ---------- */
+.page{animation:fade .3s var(--ease)}
+.page>.dash>*{animation:rise .65s var(--out) backwards}
+.page>.dash>*:nth-child(2){animation-delay:.07s}
+.page>.dash>*:nth-child(3){animation-delay:.14s}
+.page>.dash>*:nth-child(4){animation-delay:.21s}
+.page>.dash>*:nth-child(5){animation-delay:.28s}
+.page>.dash>*:nth-child(n+6){animation-delay:.34s}
+/* these were `both`, which froze transform:none and silently cancelled the hover lift */
+.svc-row{animation-fill-mode:backwards}
+.trow.enter{animation:rise .45s var(--out) backwards;animation-delay:calc(var(--i,0)*55ms)}
+
+/* ---------- cards: depth + hover ---------- */
+.card{box-shadow:var(--shadow)}
+.card:hover,.ccard:hover{box-shadow:var(--shadow-md)}
+.tbl:hover,.lt:hover,.anc:hover,.set-card:hover,.lc:hover,.ts:hover,.dcc:hover,.inv:hover,.ltx:hover,.empty:hover{box-shadow:var(--shadow)}
+.ccard.primary{box-shadow:0 16px 30px -14px rgba(79,70,229,.55)}
+.ccard.sky{box-shadow:0 16px 30px -14px rgba(6,182,212,.5)}
+.ccard.light{box-shadow:var(--shadow)}
+.ccard.primary:hover{box-shadow:0 22px 38px -14px rgba(79,70,229,.6)}
+.ccard.sky:hover{box-shadow:0 22px 38px -14px rgba(6,182,212,.55)}
+.ccard.light:hover{box-shadow:var(--shadow-md)}
+.ccard{position:relative}
+.ccard::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.22) 50%,transparent 65%) no-repeat;background-size:60% 100%;background-position:-120% 0}
+.ccard:hover::after{animation:sheen .9s var(--ease)}
+.stat img{transition:transform .35s var(--spring)}
+.stat:hover img{transform:scale(1.08)}
+.mi,.svc-cat,.cl-row{cursor:default}
+.mi:hover,.cl-row:hover,.svc-row:hover{border-color:transparent}
+
+/* ---------- header, popovers ---------- */
+.round{position:relative}
+.round:hover{box-shadow:0 6px 14px rgba(79,70,229,.18)}
+.dot{position:absolute;top:11px;right:12px;width:10px;height:10px;border-radius:50%;background:var(--danger);border:2px solid #F1F5F9;animation:ping 2s infinite}
+.round:hover .dot{border-color:#E0E7FF}
+.bell-wrap{position:relative}
+.avatar-btn{display:block;border-radius:50%;transition:transform .25s var(--spring),box-shadow .25s var(--ease)}
+.avatar-btn:hover{transform:scale(1.06);box-shadow:0 0 0 3px #fff,0 0 0 5px var(--primary)}
+.avatar-btn:active{transform:scale(.96)}
+.search{position:relative}
+.search:hover{background:#EDF1F7}
+.pop{position:absolute;z-index:40;background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow-lg);overflow:hidden;animation:pop-in .18s var(--out);transform-origin:top right}
+.search-pop{top:calc(100% + 10px);left:0;right:0;min-width:230px;list-style:none;padding:8px}
+.search-pop li{list-style:none}
+.search-pop button{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;padding:10px 14px;border-radius:12px;font-size:14px;color:var(--text);text-align:left;transition:background .15s var(--ease),color .15s}
+.search-pop button.on{background:#EEF2FF;color:var(--primary)}
+.search-pop small{font-size:12px;color:var(--muted)}
+.pop-empty{padding:20px;text-align:center;color:var(--muted);font-size:14px}
+.notif{top:calc(100% + 14px);right:-24px;width:340px;max-width:calc(100vw - 32px)}
+.notif-head{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line);font-size:15px}
+.notif-head .link{font-size:13px}
+.notif ul{list-style:none;padding:0;margin:0;max-height:320px;overflow:auto}
+.notif li{padding:13px 18px;border-bottom:1px solid var(--line);transition:background .15s}
+.notif li:last-child{border-bottom:0}.notif li:hover{background:#F5F7FF}
+.notif li b{display:block;font-size:14px;font-weight:600}
+.notif li span{display:block;font-size:13px;color:var(--muted);margin-top:2px}
+.notif li small{display:block;font-size:12px;color:var(--muted);margin-top:4px}
+
+/* ---------- sidebar: one indicator that glides between items ---------- */
+.sidebar nav{position:relative}
+.nav-item::before{display:none}
+.nav-bar{position:absolute;left:0;top:0;width:100%;pointer-events:none;background:linear-gradient(90deg,rgba(79,70,229,.09),rgba(79,70,229,0) 85%);transition:transform .4s var(--out),height .3s var(--ease),opacity .2s}
+.nav-bar::after{content:"";position:absolute;left:0;top:10px;bottom:10px;width:6px;border-radius:0 10px 10px 0;background:var(--primary)}
+.nav-item.active{font-weight:600}
+.nav-icon{transition:transform .25s var(--spring)}
+.nav-item:hover .nav-icon{transform:scale(1.1)}
+@media (min-width:769px) and (max-width:1100px){.nav-bar::after{top:3px;bottom:2px;width:5px}}
+
+/* ---------- buttons: hover + press feedback ---------- */
+.btn,.save{display:inline-flex;align-items:center;justify-content:center;gap:10px}
+.btn{box-shadow:0 8px 18px rgba(79,70,229,.25)}
+.btn.ghost{background:var(--card);color:var(--text);border:1px solid var(--line);box-shadow:none}
+.btn.ghost:hover{background:#F8FAFC;transform:none}
+.dl:hover,.repay:hover,.vd:hover{box-shadow:0 6px 14px rgba(79,70,229,.2)}
+.btn:active,.save:active,.send:active,.dl:active,.repay:active,.vd:active,.pg:active,.pn:active,.round:active,.next:active,.person:active,.cs-row:active,.cl-link:active,.modal-x:active,.tab:active,.st-tab:active{transform:scale(.96)}
+.link:active{opacity:.6}
+.btn:disabled,.save:disabled,.send:disabled{cursor:progress;opacity:.85;transform:none}
+.send.done,.send.done:hover{background:var(--success);box-shadow:0 8px 20px rgba(16,185,129,.3)}
+.spin{display:inline-block;width:16px;height:16px;flex:none;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
+.pg,.pn,.tab,.st-tab{transition:background .2s var(--ease),color .2s var(--ease),border-color .2s var(--ease),transform .15s var(--ease)}
+
+/* ---------- table / list rows ---------- */
+.trow:not(.thead):hover,.lt-row:not(.lt-head):not(.lt-total):hover,.ts-row:not(.ts-head):hover{background:#F5F7FF;box-shadow:-12px 0 0 #F5F7FF,12px 0 0 #F5F7FF}
+.ltx-row,.inv-row,.ts-row{transition:background .2s var(--ease),box-shadow .2s var(--ease)}
+.ltx-row:hover,.inv-row:hover{background:#F5F7FF;border-radius:14px;box-shadow:-10px 0 0 #F5F7FF,10px 0 0 #F5F7FF}
+.ts-row,.lt-row{transition:background .2s var(--ease),box-shadow .2s var(--ease)}
+
+/* ---------- forms: focus + validation ---------- */
+.fld input,.sf input,.sf select{transition:border-color .2s var(--ease),box-shadow .2s var(--ease),color .2s,background .2s}
+.fld input:hover,.sf input:hover{border-color:#CBD5E1}
+.fld.invalid input,.sf.invalid input{border-color:var(--danger);box-shadow:0 0 0 3px rgba(239,68,68,.12);animation:shake .35s}
+.fld.invalid input:focus,.sf.invalid input:focus{border-color:var(--danger)}
+.fld.invalid label,.sf.invalid label{color:var(--danger)}
+.err{position:absolute;left:4px;top:100%;margin-top:3px;font-size:12px;line-height:14px;color:var(--danger);animation:fade .2s var(--ease);white-space:nowrap}
+.qt-pill{transition:box-shadow .2s var(--ease)}
+.qt-pill:focus-within{box-shadow:0 0 0 2px var(--primary)}
+.qt-pill.invalid{box-shadow:0 0 0 2px var(--danger);animation:shake .35s}
+@media (max-width:1100px){.err{font-size:11.5px;line-height:13px;margin-top:1px}}
+@media (max-width:768px){.anc-grid.has-err{row-gap:22px}}
+
+/* ---------- toggles ---------- */
+.pr-track{box-shadow:inset 0 1px 3px rgba(15,23,42,.12)}
+.pr-row input:checked+.pr-track{box-shadow:0 4px 10px rgba(6,182,212,.35)}
+.pr-knob{transition:transform .3s var(--spring),width .2s var(--ease),box-shadow .2s}
+.pr-row:active .pr-knob{box-shadow:0 2px 8px rgba(15,23,42,.3)}
+
+/* ---------- tab content transition ---------- */
+.tab-panel{animation:rise .4s var(--out)}
+
+/* ---------- avatar, contacts, quick transfer ---------- */
+.person{animation:fade .35s var(--ease)}
+.person img{transition:transform .3s var(--spring),box-shadow .25s var(--ease)}
+.person:hover img{transform:scale(1.06)}
+.person.sel img{box-shadow:0 0 0 3px #fff,0 0 0 5px var(--primary)}
+.next{transition:transform .25s var(--spring),box-shadow .2s}.next:hover{box-shadow:0 8px 22px rgba(79,70,229,.25)}
+
+/* ---------- card settings: toggled state ---------- */
+.cs-state{margin-left:auto;flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--success);color:#fff;opacity:0;transform:scale(0);transition:transform .3s var(--spring),opacity .2s}
+.cs-row.on .cs-state{opacity:1;transform:scale(1)}
+
+/* ---------- charts: slower, eased entrance + hover feedback ---------- */
+.bar,.bbar,.dbar,.slice{animation-duration:.8s;animation-timing-function:var(--out)}
+.line{animation-duration:1.2s;animation-timing-function:var(--ease)}
+.area{animation-duration:1.1s;animation-delay:.25s}
+.bar{transition:opacity .2s}.bar:hover{opacity:.8}
+.dbar{transition:filter .2s}.dbar:hover{filter:brightness(1.12)}
+.slice{animation-fill-mode:backwards;transition:transform .3s var(--spring),filter .3s;cursor:pointer}
+.slice:hover{transform:scale(1.04)}
+.dotp{transition:r .2s var(--ease)}.dotp:hover{r:7}
+
+/* ---------- dialog ---------- */
+body.modal-open{overflow:hidden}
+.modal-back{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:16px;background:rgba(15,23,42,.45);backdrop-filter:blur(3px);animation:fade .2s var(--ease)}
+.modal{width:min(460px,100%);max-height:calc(100vh - 32px);overflow:auto;background:var(--card);border-radius:22px;box-shadow:var(--shadow-lg);animation:modal-in .3s var(--out);outline:0}
+.modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 24px 6px}
+.modal-head h3{font-size:20px;font-weight:600}
+.modal-x{width:34px;height:34px;flex:none;border-radius:50%;display:grid;place-items:center;color:var(--muted);transition:background .2s,color .2s,transform .15s}
+.modal-x:hover{background:#F1F5F9;color:var(--text)}
+.modal-body{padding:10px 24px 8px}
+.modal-foot{display:flex;justify-content:flex-end;gap:12px;padding:16px 24px 22px}
+.modal-foot .btn{width:auto;min-width:120px;height:44px;margin-top:0;padding:0 22px;font-size:15px}
+.modal-text{font-size:15px;line-height:24px;color:var(--muted);margin-bottom:12px}
+.kv{display:grid;margin:0}
+.kv>div{display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid var(--line);font-size:15px}
+.kv>div:last-child{border-bottom:0}
+.kv dt{color:var(--muted)}.kv dd{margin:0;font-weight:500;text-align:right}
+@media (max-width:480px){.modal-foot{flex-direction:column-reverse}.modal-foot .btn{width:100%}}
+
+/* ---------- toasts ---------- */
+.toasts{position:fixed;right:24px;bottom:24px;z-index:100;display:flex;flex-direction:column;gap:10px;pointer-events:none}
+.toast{pointer-events:auto;display:flex;align-items:center;gap:12px;min-width:260px;max-width:380px;padding:12px 12px 12px 12px;background:#0F172A;color:#fff;border-radius:14px;box-shadow:0 14px 34px rgba(15,23,42,.28);font-size:14px;line-height:20px;animation:toast-in .35s var(--out)}
+.toast.leaving{animation:toast-out .24s var(--ease) forwards}
+.toast-ico{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;flex:none}
+.toast.success .toast-ico{background:rgba(16,185,129,.2);color:#34D399}
+.toast.info .toast-ico{background:rgba(6,182,212,.2);color:#67E8F9}
+.toast.error .toast-ico{background:rgba(239,68,68,.22);color:#F87171}
+.toast-msg{flex:1;min-width:0}
+.toast-x{flex:none;width:24px;height:24px;border-radius:50%;font-size:18px;line-height:1;color:rgba(255,255,255,.6);transition:background .2s,color .2s}
+.toast-x:hover{background:rgba(255,255,255,.12);color:#fff}
+@media (max-width:768px){.toasts{left:16px;right:16px;bottom:16px}.toast{max-width:none}}
+
+/* ---------- empty state ---------- */
+.empty{padding:72px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px}
+.empty:hover{transform:none}
+.empty-ico{width:76px;height:76px;border-radius:50%;background:#EEF2FF;color:var(--primary);display:grid;place-items:center;margin-bottom:6px}
+.empty h2{font-size:22px;font-weight:600}
+.empty p{max-width:380px;color:var(--muted);line-height:24px;font-size:16px}
+.empty .btn{margin-top:12px}
+
+/* ---------- mobile: flat widgets keep no shadow; smooth drawer + scrim ---------- */
+@media (max-width:768px){
+.dbp .tx-list,.dbp .chart-card,.dbp .pie-card,.dbp .qt,.dbp .ccard,.txp .ccard{box-shadow:none}
+.dbp .card:hover,.dbp .ccard:hover,.txp .ccard:hover{box-shadow:none}
+.sidebar{transition:transform .38s var(--out),box-shadow .38s var(--ease)}
+.sidebar.open{box-shadow:var(--shadow-lg)}
+.scrim{opacity:0;visibility:hidden;pointer-events:none;animation:none;backdrop-filter:blur(2px);transition:opacity .3s var(--ease),visibility .3s}
+.scrim.show{opacity:1;visibility:visible;pointer-events:auto}
+.sidebar .nav-item{opacity:0;transform:translateX(-12px);transition:opacity .35s var(--ease),transform .35s var(--out),color .2s,background .2s,padding-left .2s}
+.sidebar.open .nav-item{opacity:1;transform:none}
+.sidebar.open .nav-item:nth-child(2){transition-delay:.04s}.sidebar.open .nav-item:nth-child(3){transition-delay:.07s}.sidebar.open .nav-item:nth-child(4){transition-delay:.1s}
+.sidebar.open .nav-item:nth-child(5){transition-delay:.13s}.sidebar.open .nav-item:nth-child(6){transition-delay:.16s}.sidebar.open .nav-item:nth-child(7){transition-delay:.19s}
+.sidebar.open .nav-item:nth-child(8){transition-delay:.22s}.sidebar.open .nav-item:nth-child(9){transition-delay:.25s}.sidebar.open .nav-item:nth-child(10){transition-delay:.28s}
+.dot{top:6px;right:7px}
+}
+@media (min-width:769px) and (max-width:1100px){.dot{top:7px;right:8px}}
+
+@media (prefers-reduced-motion:reduce){
+.spin{animation:spin 1.6s linear infinite!important}
+.sidebar .nav-item{opacity:1;transform:none}
+html{scroll-behavior:auto}
+}
+
+/* readability: white text fails contrast on the light cyan / amber slices, so those labels use the dark text colour */
+.pie-pct.dark,.pie-lbl.dark{fill:var(--text)}
